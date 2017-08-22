@@ -1,4 +1,6 @@
-The trace for an actual handshake with icons.duckduckgo.com:
+## New Session Handshake
+
+> The trace for an actual handshake with icons.duckduckgo.com:
 
 ### Summary of the handshake
 
