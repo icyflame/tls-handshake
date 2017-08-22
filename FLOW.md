@@ -154,5 +154,5 @@ encrypted using the just negotiated the `master_secret`.
 }
 ```
 
-`verify_data_len` is 12 octest by default, but might change on the basis of the
+`verify_data_len` is 12 octets by default, but might change on the basis of the
 negotiated the cipher suite.
