@@ -6,7 +6,7 @@
 
 * [Target audience](#target)
 * [A New Session Negotiation: Explained!](#explanation)
-  * [How to read this explanation?](#how-to-read)
+  * [How to read this explanation?](#how-to-read-this-explanation)
   * [Flow](#flow)
 * [Abbreviations](#abbreviations)
 * [References](#references)
@@ -15,9 +15,9 @@
 
 ## Other pages
 
-* [Packet trace of an actual new session](./SAMPLE_NEW.md)
+* [Packet trace of an actual new session negotiation](./SAMPLE_NEW.md)
 * [Packet trace of a session resumption](./SAMPLE_RESUMPTION.md)
-* [Each message in detail](./MESSAGES.md)
+* [Looking at each message, in detail](./MESSAGES.md)
 
 ## Target
 
@@ -138,7 +138,7 @@ signature algorithms:
 
 > if this connection is going to be negotiated through DHE or DH_anon
 >
-> i.e this connection is DHE_RSA, DHE_DSS or DH_anon
+> i.e this connection is DHE, ECDHE or DH_anon
 
 Server -----> Client
 
