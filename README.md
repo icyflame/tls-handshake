@@ -212,7 +212,7 @@ here:
     The certificate holds the private key for it's certificate, and hence should
     be able to decrypt this message and find it's 48 byte pre-master-secret.
 
-* DH
+* DH, DHE, ECDH, ECDHE
 
     ```
     {
@@ -262,7 +262,7 @@ Client -----> Server
 
 Server -----> Client
 
-**Purpose:** I have calculated the master secret, the next message I send to you
+**Purpose:** I have calculated the master secret, the next message I send you
 will be encrypted with that master secret. See you on the other side!
 
 ```
@@ -330,11 +330,13 @@ RSA | Rivest, Shamir, Adleman public key cryptosystem
 
 ## Appendix
 
-**Notice something that can be improved?** Please open a pull request!
+**Notice something that can be improved?** Please [open a pull
+request!](https://github.com/icyflame/understanding-tls/pulls)
 
-**Mistakes?** Please open an issue on the issues dashboard right away! I have
-read this several times, and had others review this to remove any errors. If you
-find one anyway, please open an issue right away!
+**Mistakes?** Please [open an
+issue](https://github.com/icyflame/understanding-tls/issues/new) on the issues
+dashboard right away! I have read this several times, and had others review this
+to remove any errors. If you find one anyway, please open an issue right away!
 
 ## License
 
