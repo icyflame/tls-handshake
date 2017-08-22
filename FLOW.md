@@ -3,7 +3,7 @@
 This is a flow of the handshake, and an abbreviated list of the things that are
 sent alongwith each of the messages.
 
-1. Client Hello
+### 1. Client Hello
 
   > Required
 
@@ -18,7 +18,7 @@ sent alongwith each of the messages.
   }
   ```
 
-2. Server Hello: 
+### 2. Server Hello: 
 
   > Required
 
@@ -33,7 +33,7 @@ sent alongwith each of the messages.
   }
   ```
 
-3. Server Certificate 
+### 3. Server Certificate 
 
   > if this connection is NOT anonymous, i.e. NOT `DH_anon`
 
@@ -50,7 +50,7 @@ sent alongwith each of the messages.
   * Diffie-Hellman           : `{ g, p, Ys}` where `Ys = g ^ x (mod p)`
   * Diffie-Hellman Ephemeral : Nothing specific
 
-4. Server Key Exchange
+### 4. Server Key Exchange
 
 > if this connection is going to be negotiated through DHE or DH_anon
 > i.e this connection is DHE_RSA, DHE_DSS or DH_anon
@@ -62,11 +62,11 @@ sent alongwith each of the messages.
 }
 ```
 
-5. Certificate Request
+### 5. Certificate Request
 
 > Dropped in this explanation
 
-6. Server Hello Done
+### 6. Server Hello Done
 
 > After SKE or CR, SHD indicates that server is now done and is waiting for a
 > response from the client
@@ -75,11 +75,11 @@ sent alongwith each of the messages.
 { }
 ```
 
-7. Client Certificate
+### 7. Client Certificate
 
 > Dropped in this explanation
 
-8. Client Key Exchange
+### 8. Client Key Exchange
 
 > client sends params to the server to compute a common pre-master secret, and
 > subsequently, a common master secret
@@ -111,7 +111,7 @@ here:
     `Yc` is known implicitly if the client sent a `ClientCertificate` message,
     and that certificate was a `fixed_dh` certificate
 
-9. Certificate Verify
+### 9. Certificate Verify
 
 > Dropped in this explanation
 
@@ -127,7 +127,7 @@ Client) The order of this is not defined in the spec.
 
 ***
 
-10. Change Cipher Spec
+### 10. Change Cipher Spec
 
 > This message lets the recipient know that the master_secret has been
 > calculated by the sender and they are now switching over to the bulk encryption.
@@ -139,7 +139,7 @@ Client) The order of this is not defined in the spec.
 **Note:** This is not a handshake message and shouldn't be treated as such when
 calculating the hash in the `Finished` message
 
-11. Finished
+### 11. Finished
 
 > This is a handshake finalization message and is encrypted with the just
 > negotiated `master_secret`. 
