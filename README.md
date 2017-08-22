@@ -50,7 +50,7 @@ that I fell into, before I started writing this explanation)
 
 **Purpose:** An informal purpose of the message
 
-```
+```txt
 {
   a structure of how the message would look like in a presentation language
 }
