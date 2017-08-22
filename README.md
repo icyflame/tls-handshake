@@ -5,8 +5,13 @@
 ## Sections
 
 * [Target audience](#target)
-* [A New Session Negotiation: Explained!](#flow)
+* [A New Session Negotiation: Explained!](#explanation)
+  * [How to read this explanation?](#how-to-read)
+  * [Flow](#flow)
+* [Abbreviations](#abbreviations)
 * [References](#references)
+* [Appendix](#appendix)
+* [License](#license)
 
 ## Other pages
 
@@ -35,9 +40,25 @@ make sense of what the paremeters of each of these are and what the goal of each
 is, then you should be able to understand this explanation. (It was that set
 that I fell into, before I started writing this explanation)
 
+# Explanation
+
+## How to read this explanation?
+
+### n. Message Name
+
+> pre-conditions for this message being sent
+
+**Purpose:** An informal purpose of the message
+
+```
+{
+  a structure of how the message would look like in a presentation language
+}
+```
+
 ## Flow
 
-This is a flow of the handshake, for a new session negotiation.
+This is a flow of the handshake for a new session negotiation.
 
 ### 1. Client Hello
 
@@ -70,7 +91,7 @@ some work.  Smile, smile.
 
 Server -----> Client
 
-**Purpose:** Hello! Sure, I saw your list, let's continue with this TLS version,
+**Purpose:** Hello! Sure. I saw your list, let's continue with this TLS version,
 a cipher suite and a compression method from your list that I support. I
 generated some random bytes for use later, a session ID that you can use for
 resumption in a separate connection, and some extensions.
@@ -93,8 +114,8 @@ resumption in a separate connection, and some extensions.
 Server -----> Client
 
 **Purpose:** I am attaching a trust chain of certificates that I think you will
-be able to verify and trust me with. These certificates might also have some
-parameters for the key exchange we will perform later (DH + RSA).
+be able to verify and trust me with. My certificate might have some parameters
+for the key exchange we will perform later.
 
 ```
 {
@@ -103,15 +124,20 @@ parameters for the key exchange we will perform later (DH + RSA).
 ```
 
 The first certificate in the list must be the destination server's. It should
-contain the following information, based on the type of key exchange:
+contain the following information, based on the type of key exchange and
+signature algorithms:
 
-* RSA                      : `{ RSA_pub_key }`
-* Diffie-Hellman           : `{ g, p, Ys}` where `Ys = g ^ x (mod p)`
-* Diffie-Hellman Ephemeral : Nothing specific
+* RSA, RSA_PSK, DHE_RSA, ECDHE_RSA : `{ RSA_pub_key }`
+* DSA : `{ DSA_pub_key }`
+* Diffie-Hellman : `{ g, p, Ys}` where `Ys = g ^ x (mod p)`
+* Elliptic Curve Diffie-Hellman : ECDH capable public key, curve and point
+    format
+* Diffie-Hellman Ephemeral or EC-DHE : Nothing specific
 
 ### 4. Server Key Exchange
 
 > if this connection is going to be negotiated through DHE or DH_anon
+>
 > i.e this connection is DHE_RSA, DHE_DSS or DH_anon
 
 Server -----> Client
@@ -127,14 +153,18 @@ will need for our key exchange.
 }
 ```
 
+`client_random` and `server_random` here are the 28 byte `random_bytes` in the
+`Hello` messages, alongwith the 4 byte `gmt_unix_time` (time since epoch
+representation)
+
 ### 5. Certificate Request
 
 > Dropped in this explanation
 
 Server -----> Client
 
-**Purpose:** Actually, I only allow clients that have authenticated with me
-before, so I need to have a look at your certificate. Please send them over.
+**Purpose:** Actually, I only allow clients that hold a valid certificate, so I
+need to have a look at your certificate. Please send it over.
 
 ### 6. Server Hello Done
 
@@ -179,6 +209,9 @@ here:
     }
     ```
 
+    The certificate holds the private key for it's certificate, and hence should
+    be able to decrypt this message and find it's 48 byte pre-master-secret.
+
 * DH
 
     ```
@@ -194,6 +227,9 @@ here:
     `Yc` is known implicitly if the client sent a `ClientCertificate` message,
     and that certificate was a `fixed_dh` certificate
 
+    Using `Yc` and `Ys`, both client and server can now compute the value of the
+    pre-master-secret.
+
 ### 9. Certificate Verify
 
 > Dropped in this explanation
@@ -207,11 +243,13 @@ explicitly verify that certificate. I hope you trust me now!
 
 **Notes:** After CKE has been transmitted, both the client and the server have
 the pre-master secret. Using this pre-master secret, both parties can now
-compute the `master_secret` which will be used for bulk encryption.
+[compute the `master_secret`](https://tools.ietf.org/html/rfc5246#section-8.1)
+which will be used for bulk encryption.
 
 After this computation is complete, each party must send a `ChangeCipherSpec`
 and a `Finished` message to the other party (i.e Client -> Server and Server ->
-Client) The order of this is not defined in the spec.
+Client). The client might send the CCS and Finished messages in the same frame
+as the CKE.
 
 ***
 
@@ -258,14 +296,48 @@ negotiated the cipher suite.
 
 Once a party has recieved the other party's `Finished` message, validated it and
 sent it's own `Finished` message, it might start sending application data
-encrypted using the just negotiated the `master_secret`.
+encrypted using the just negotiated `master_secret`.
+
+### 12. Bulk Encryption at the Application Layer begins
 
 ***
 
-### 12. Bulk Encryption at the Application Layer begins
+## Abbreviations
+
+Abbreviation | Full-form
+:---|:---
+CH | Client Hello
+SH | Server Hello
+SC | Server Certificate
+SKE | Server Key Exchange
+CR | Certificate Request
+SHD | Server Hello Done
+CC | Client Certificate
+CKE | Client Key Exchange
+CV | Certificate Verify
+CCS | Change Cipher Spec
+DH | Diffie-Hellman Key Exchange
+ECDH | Elliptic Curve Diffie-Hellman Key Exchange
+DHE | Ephemeral DH
+ECDHE | Ephemeral ECDH
+RSA | Rivest, Shamir, Adleman public key cryptosystem
 
 ## References
 
 * [IETF RFC 5246: TLS v1.2](https://tools.ietf.org/html/rfc5246)
 * [First few milliseconds of HTTPS](http://www.moserware.com/2009/06/first-few-milliseconds-of-https.html)
 * [TLS Handshake Protocol](https://www.cs.fsu.edu/~yasinsac/group/work/childs/TLS.html)
+
+## Appendix
+
+**Notice something that can be improved?** Please open a pull request!
+
+**Mistakes?** Please open an issue on the issues dashboard right away! I have
+read this several times, and had others review this to remove any errors. If you
+find one anyway, please open an issue right away!
+
+## License
+
+Licensed under MIT.
+
+Copyright (C) 2017  Siddharth Kannan <kannan.siddharth12@gmail.com>
