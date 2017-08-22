@@ -74,7 +74,7 @@ support and some extensions I would love to have. Let's begin?
 you have those settings cached, then let's continue with that. Saves both of us
 some work.  Smile, smile.
 
-```
+```txt
 { 
   ProtVer, 
   { time, random_bytes[28] }, 
@@ -96,7 +96,7 @@ a cipher suite and a compression method from your list that I support. I
 generated some random bytes for use later, a session ID that you can use for
 resumption in a separate connection, and some extensions.
 
-```
+```txt
 {
   ProtVer,
   { time, random_bytes[28] },
@@ -117,7 +117,7 @@ Server -----> Client
 be able to verify and trust me with. My certificate might have some parameters
 for the key exchange we will perform later.
 
-```
+```txt
 {
   List of X.509v3 certificates in ASN.1 that represent a trust chain
 }
@@ -146,7 +146,7 @@ Server -----> Client
 didn't have all the data. So, here are some of the other parameters that you
 will need for our key exchange.
 
-```
+```txt
 {
   { g, p, Ys },
   DH params signed with client_random[32], server_random[32] -> if not DH_anon
@@ -175,7 +175,7 @@ Server -----> Client
 
 **Purpose:** My part of the Hello is done, I will wait for your response.
 
-```
+```txt
 { }
 ```
 
@@ -202,7 +202,7 @@ here:
 
 * RSA
 
-    ```
+    ```txt
     {
       Random 48-byte string, public-key encrypted pre-master secret
       (encrypted with the RSA pubkey sent by the server in SC)
@@ -214,7 +214,7 @@ here:
 
 * DH, DHE, ECDH, ECDHE
 
-    ```
+    ```txt
     {
       enum { implicit, explicit } PublicValueEncoding,
       if explicit, { Yc }
@@ -265,7 +265,7 @@ Server -----> Client
 **Purpose:** I have calculated the master secret, the next message I send you
 will be encrypted with that master secret. See you on the other side!
 
-```
+```txt
 { 1 }
 ```
 
@@ -285,7 +285,7 @@ Server -----> Client
 negotiated. If you can decrypt, verify and validate it, we can hand the baton
 over to the application layer!
 
-```
+```txt
 { 
   PRF(master_secret, finished_label, Hash(handshake_msgs))[0...verify_data_len]
 }
