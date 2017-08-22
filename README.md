@@ -60,6 +60,13 @@ that I fell into, before I started writing this explanation)
 
 This is a flow of the handshake for a new session negotiation.
 
+Before we begin, let's state the goal of this handshake.
+
+**Goal:** To share a master secret between the client and the server, when the
+only communication channel that is available to us is insecure and might have
+talented, determined eavesdroppers who would like to implement a MITM attack and
+hijack the connection the server and the client have.
+
 ### 1. Client Hello
 
 > Required
