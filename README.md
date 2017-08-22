@@ -66,4 +66,3 @@ struct {
     that would now identify the session that will be negotiated.
 - **cipher_suite** is the cipher suite the server has decided to continue this
     negotiation with
-- 
