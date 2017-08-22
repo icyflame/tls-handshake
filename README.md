@@ -6,10 +6,13 @@
 
 * [Target audience](#target)
 * [A New Session Negotiation: Explained!](#flow)
+* [References](#references)
+
+## Other pages
+
 * [Packet trace of an actual new session](./SAMPLE_NEW.md)
 * [Packet trace of a session resumption](./SAMPLE_RESUMPTION.md)
 * [Each message in detail](./MESSAGES.md)
-* [References](#references)
 
 ## Target
 
@@ -218,6 +221,7 @@ Client) The order of this is not defined in the spec.
 > calculated by the sender and they are now switching over to the bulk encryption.
 
 Client -----> Server
+
 Server -----> Client
 
 **Purpose:** I have calculated the master secret, the next message I send to you
@@ -236,6 +240,7 @@ calculating the hash in the `Finished` message
 > negotiated `master_secret`. 
 
 Client -----> Server
+
 Server -----> Client
 
 **Purpose:** This message is encrypted with the new master_secret that we just
@@ -258,3 +263,9 @@ encrypted using the just negotiated the `master_secret`.
 ***
 
 ### 12. Bulk Encryption at the Application Layer begins
+
+## References
+
+* [IETF RFC 5246: TLS v1.2](https://tools.ietf.org/html/rfc5246)
+* [First few milliseconds of HTTPS](http://www.moserware.com/2009/06/first-few-milliseconds-of-https.html)
+* [TLS Handshake Protocol](https://www.cs.fsu.edu/~yasinsac/group/work/childs/TLS.html)
