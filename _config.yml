@@ -2,6 +2,7 @@ theme: jekyll-theme-cayman
 markdown: kramdown
 
 keep_files: [ 'favicon.ico' ]
+google_analytics: 'UA-40518182-14'
 
 kramdown:
   input: GFM
