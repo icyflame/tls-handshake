@@ -1,11 +1,11 @@
-# Understanding TLS 1.2
+# TLS 1.2 Handshake - An explanation
 
 > An effort to understand and explain TLS, at the _right_ level of abstraction
 
 ## Sections
 
 * [Target audience](#target)
-* [A New Session Negotiation: Explained!](#explanation)
+* [A New Session Negotiation: Explained!](#new-session-negotiation)
   * [How to read this explanation?](#how-to-read-this-explanation)
   * [Flow](#flow)
 * [Abbreviations](#abbreviations)
@@ -17,30 +17,40 @@
 
 * [Packet trace of an actual new session negotiation](./SAMPLE_NEW.md)
 * [Packet trace of a session resumption](./SAMPLE_RESUMPTION.md)
-* [Looking at each message, in detail](./MESSAGES.md)
+* [Looking at each message, in detail _WIP_](./MESSAGES.md)
 
 ## Target
 
 My aim was to understand TLS v1.2, at an abstraction level that is above the
-bare bones Alice / Bob sketch, and at one that is below the IETF
-specification, RFC 5246. There was one
-[video](https://www.youtube.com/watch?v=cuR05y_2Gxc) that came close to the
-ideal, but I wanted more detail. So, I decided to write my own.
+bare bones Alice / Bob sketch, and at one that is below the fully detailed IETF
+specification, RFC 5246. The article [First few Milliseconds of
+HTTPS](http://www.moserware.com/2009/06/first-few-milliseconds-of-https.html)
+came close also, but unfortunately dealing with RSA and RC4, it was really
+really outdated!
+
+There was one [video](https://www.youtube.com/watch?v=cuR05y_2Gxc) which came
+close to the ideal, but I wanted more detail. So, I decided to write my own.
 
 **Who should read this?**
 
-If you know about the mathematics involved in the following, you are good to go:
+This explanation is specifically aimed at people who have taken a basic course
+in cryptography covering the fundamentals of some of the common public-key
+cryptosystems that are commonly used today (RSA, DHE, and a little bit of ECC).
+More specifically, if you know the mathematics of these, then you are good to
+go:
 
-* [Digital signature](https://en.wikipedia.org/wiki/Digital_signature)
 * [RSA: cryptosystem](https://en.wikipedia.org/wiki/RSA_(cryptosystem)#Encryption)
 * [Diffie-Hellman Key Exchange](https://en.wikipedia.org/wiki/DH_key_exchange)
+* [Digital signature](https://en.wikipedia.org/wiki/Digital_signature)
 
-Thorough, on-my-finger-tips knowledge is not required. If you know enough to
+Thorough, on-your-finger-tips knowledge is not required. If you know enough to
 make sense of what the paremeters of each of these are and what the goal of each
-is, then you should be able to understand this explanation. (It was that set
-that I fell into, before I started writing this explanation)
+is, then you should be able to understand this explanation. (I feel into this
+set before I started writing this explanation, if that helps!) If you are
+doubtful about whether you know enough, delve into [Flow](#flow) and you will
+find out! :)
 
-# Explanation
+# New Session Negotitation
 
 ## How to read this explanation?
 
@@ -53,19 +63,25 @@ that I fell into, before I started writing this explanation)
 ```txt
 {
   a structure of how the message would look like in a presentation language
+  (with annotations for some variables, if required)
 }
 ```
 
 ## Flow
 
-This is a flow of the handshake for a new session negotiation.
+This is a flow of the handshake for a new session negotiation between a client
+and a server. The client is generally a modern browser. The server might be
+something like Nginx, Apache etc.
 
 Before we begin, let's state the goal of this handshake.
 
 **Goal:** To share a master secret between the client and the server, when the
-only communication channel that is available to us is insecure and might have
+only communication channel that is available to them is insecure and might have
 talented, determined eavesdroppers who would like to implement a MITM attack and
-hijack the connection the server and the client have.
+hijack the connection the server and the client have. 
+
+(This master secret will be used to encrypt the traffic that passes between the
+client and the server using a symmetric cryptosystem, such as AES.)
 
 ### 1. Client Hello
 
@@ -85,7 +101,7 @@ some work.  Smile, smile.
 { 
   ProtVer, 
   { time, random_bytes[28] }, 
-  session_id?, 
+  session_id?, /* optional */
   cipher_suites[], 
   compression_methods[], 
   extensions
@@ -98,7 +114,7 @@ some work.  Smile, smile.
 
 Server -----> Client
 
-**Purpose:** Hello! Sure. I saw your list, let's continue with this TLS version,
+**Purpose:** Hey! Sure. I saw your list. Let's continue with this TLS version,
 a cipher suite and a compression method from your list that I support. I
 generated some random bytes for use later, a session ID that you can use for
 resumption in a separate connection, and some extensions.
@@ -116,7 +132,9 @@ resumption in a separate connection, and some extensions.
 
 ### 3. Server Certificate 
 
-> if this connection is NOT anonymous, i.e. NOT `DH_anon`
+> if this connection is NOT anonymous
+>
+> i.e. the selected cipher_suite does not start with `DH_anon`
 
 Server -----> Client
 
@@ -132,14 +150,15 @@ for the key exchange we will perform later.
 
 The first certificate in the list must be the destination server's. It should
 contain the following information, based on the type of key exchange and
-signature algorithms:
+signature algorithms, defined by the `cipher_suite`:
 
-* RSA, RSA_PSK, DHE_RSA, ECDHE_RSA : `{ RSA_pub_key }`
-* DSA : `{ DSA_pub_key }`
-* Diffie-Hellman : `{ g, p, Ys}` where `Ys = g ^ x (mod p)`
-* Elliptic Curve Diffie-Hellman : ECDH capable public key, curve and point
-    format
-* Diffie-Hellman Ephemeral or EC-DHE : Nothing specific
+Cryptosystem | Certificate **MUST** contain
+:---|:---:
+RSA, RSA_PSK, DHE_RSA, ECDHE_RSA | `{ RSA_pub_key }`
+DSA | `{ DSA_pub_key }`
+Diffie-Hellman | `{ g, p, Ys}` where `Ys = g ^ x (mod p)`
+Elliptic Curve Diffie-Hellman | ECDH capable public key, per the TLSECC spec
+Diffie-Hellman Ephemeral or EC-DHE | Nothing specific
 
 ### 4. Server Key Exchange
 
@@ -160,12 +179,16 @@ will need for our key exchange.
 }
 ```
 
-`client_random` and `server_random` here are the 28 byte `random_bytes` in the
-`Hello` messages, alongwith the 4 byte `gmt_unix_time` (time since epoch
-representation)
+`client_random` = `ClientHello.random`
+`server_random` = `ServerHello.random`
+
+Each `Hello` message's `random` struct contains a 4-byte `gmt_unix_time` and a
+28-byte `random_bytes` field.
 
 ### 5. Certificate Request
 
+> if the server would like to let only certified clients perform handshakes
+>
 > Dropped in this explanation
 
 Server -----> Client
@@ -175,8 +198,7 @@ need to have a look at your certificate. Please send it over.
 
 ### 6. Server Hello Done
 
-> After SKE or CR, SHD indicates that server is now done and is waiting for a
-> response from the client
+> Required
 
 Server -----> Client
 
@@ -188,6 +210,8 @@ Server -----> Client
 
 ### 7. Client Certificate
 
+> If the server requested a certificate and the client intends to comply
+>
 > Dropped in this explanation
 
 Client -----> Server
@@ -196,8 +220,8 @@ Client -----> Server
 
 ### 8. Client Key Exchange
 
-> client sends params to the server to compute a common pre-master secret, and
-> subsequently, a common master secret
+> Required. Although, this message might be empty if the `cipher_suite` and
+> Client certificate implicitly provide the DH parameters to the server
 
 Client -----> Server
 
@@ -216,8 +240,8 @@ here:
     }
     ```
 
-    The certificate holds the private key for it's certificate, and hence should
-    be able to decrypt this message and find it's 48 byte pre-master-secret.
+    The server holds the private key for it's certificate, and hence should be
+    able to decrypt this message and find it's 48 byte pre-master-secret.
 
 * DH, DHE, ECDH, ECDHE
 
@@ -262,8 +286,7 @@ as the CKE.
 
 ### 10. Change Cipher Spec
 
-> This message lets the recipient know that the master_secret has been
-> calculated by the sender and they are now switching over to the bulk encryption.
+> Required. Sent when the master secret has been calculated.
 
 Client -----> Server
 
@@ -276,19 +299,21 @@ will be encrypted with that master secret. See you on the other side!
 { 1 }
 ```
 
+This message indicates a "bridge" where the sender is moving from public-key
+encryption to a symmetric bulk-encryption algorithm.
+
 **Note:** This is not a handshake message and shouldn't be treated as such when
 calculating the hash in the `Finished` message
 
 ### 11. Finished
 
-> This is a handshake finalization message and is encrypted with the just
-> negotiated `master_secret`. 
+> Required. Sent _after_ the CCS message.
 
 Client -----> Server
 
 Server -----> Client
 
-**Purpose:** This message is encrypted with the new master_secret that we just
+**Purpose:** This message is encrypted with the new `master_secret` that we just
 negotiated. If you can decrypt, verify and validate it, we can hand the baton
 over to the application layer!
 
@@ -297,6 +322,10 @@ over to the application layer!
   PRF(master_secret, finished_label, Hash(handshake_msgs))[0...verify_data_len]
 }
 ```
+
+This handshake message is the first message that is encrypted with the just
+negotiated `master_secret` and signals that the handshake has been completed
+successfully by the sending party.
 
 `verify_data_len` is 12 octets by default, but might change on the basis of the
 negotiated the cipher suite.
@@ -325,6 +354,7 @@ CV | Certificate Verify
 CCS | Change Cipher Spec
 DH | Diffie-Hellman Key Exchange
 ECDH | Elliptic Curve Diffie-Hellman Key Exchange
+DH_anon | Anonymous Diffie-Hellman (messages aren't authenticated)
 DHE | Ephemeral DH
 ECDHE | Ephemeral ECDH
 RSA | Rivest, Shamir, Adleman public key cryptosystem
@@ -342,8 +372,7 @@ request!](https://github.com/icyflame/understanding-tls/pulls)
 
 **Mistakes?** Please [open an
 issue](https://github.com/icyflame/understanding-tls/issues/new) on the issues
-dashboard right away! I have read this several times, and had others review this
-to remove any errors. If you find one anyway, please open an issue right away!
+dashboard right away!
 
 ## License
 
