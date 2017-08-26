@@ -1,6 +1,8 @@
 theme: jekyll-theme-cayman
 markdown: kramdown
 
+keep_files: [ 'favicon.ico' ]
+
 kramdown:
   input: GFM
   syntax_highlighter: rouge

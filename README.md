@@ -50,7 +50,7 @@ set before I started writing this explanation, if that helps!) If you are
 doubtful about whether you know enough, delve into [Flow](#flow) and you will
 find out! :)
 
-# New Session Negotitation
+# New Session Negotiation
 
 ## How to read this explanation?
 
